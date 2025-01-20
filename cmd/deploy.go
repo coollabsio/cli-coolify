@@ -29,7 +29,7 @@ var deployByUuidCmd = &cobra.Command{
 	Short: "Deploy by uuid",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckMinimumVersion("4.0.0-beta.237")
+		CheckDefaultThings("4.0.0-beta.237")
 		var CsvUuids = ""
 		for _, uuid := range args {
 			CsvUuids += uuid + ","
@@ -40,6 +40,7 @@ var deployByUuidCmd = &cobra.Command{
 			log.Println(err)
 			return
 		}
+
 		if PrettyMode {
 			var prettyJSON bytes.Buffer
 			err := json.Indent(&prettyJSON, []byte(data), "", "\t")

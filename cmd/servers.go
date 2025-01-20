@@ -45,8 +45,10 @@ var listServersCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all servers",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckMinimumVersion("4.0.0-beta.235")
-		data, err := Fetch("servers")
+		CheckDefaultThings("4.0.0-beta.235")
+
+		baseUrl := "servers"
+		data, err := Fetch(baseUrl)
 		if err != nil {
 			log.Println(err)
 			return
@@ -89,11 +91,13 @@ var oneServerCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Short: "Get server details by uuid",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckMinimumVersion("4.0.0-beta.235")
+		CheckDefaultThings("4.0.0-beta.235")
+		baseUrl := "servers/"
+
 		uuid := args[0]
-		var url = "server/" + uuid
+		var url = baseUrl + uuid
 		if WithResources {
-			url = "server/" + uuid + "?resources=true"
+			url = baseUrl + uuid + "?resources=true"
 		}
 
 		data, err := Fetch(url)
@@ -148,10 +152,92 @@ var oneServerCmd = &cobra.Command{
 	},
 }
 
+var removeServerCmd = &cobra.Command{
+	Use:   "remove [uuid]",
+	Short: "Remove a server",
+	Run: func(cmd *cobra.Command, args []string) {
+		CheckDefaultThings("4.0.0-beta.235")
+		baseUrl := "servers/"
+		uuid := args[0]
+		response, err := Delete(baseUrl + uuid)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		msg := map[string]string{}
+		json.Unmarshal([]byte(response), &msg)
+		fmt.Println(msg["message"])
+	},
+}
+
+var addServerCmd = &cobra.Command{
+	Use:   "add [name] [ip] [private_key_uuid]",
+	Short: "Add a server",
+	Run: func(cmd *cobra.Command, args []string) {
+		CheckDefaultThings("4.0.0-beta.235")
+		baseUrl := "servers"
+		name := args[0]
+		ip := args[1]
+		privateKeyUuid := args[2]
+		port, _ := cmd.Flags().GetInt("port")
+		user, _ := cmd.Flags().GetString("user")
+		validate, _ := cmd.Flags().GetBool("validate")
+		jsonData, err := json.Marshal(map[string]interface{}{
+			"name":             name,
+			"ip":               ip,
+			"port":             port,
+			"user":             user,
+			"private_key_uuid": privateKeyUuid,
+			"instant_validate": validate,
+		})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		response, err := Post(baseUrl, bytes.NewBuffer(jsonData))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		msg := map[string]string{}
+		json.Unmarshal([]byte(response), &msg)
+		if validate {
+			fmt.Println("Server added successfully with uuid " + msg["uuid"])
+		} else {
+			fmt.Println("Server added successfully with uuid " + msg["uuid"] + ". Server is not validated. Use 'servers validate " + msg["uuid"] + "' to validate the server.")
+		}
+	},
+}
+
+var validateServerCmd = &cobra.Command{
+	Use:   "validate [uuid]",
+	Short: "Validate a server",
+	Run: func(cmd *cobra.Command, args []string) {
+		CheckDefaultThings("4.0.0-beta.235")
+		baseUrl := "servers/"
+		uuid := args[0]
+		var url = baseUrl + uuid + "/validate"
+		response, err := Fetch(url)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		msg := map[string]string{}
+		json.Unmarshal([]byte(response), &msg)
+		fmt.Println(msg["message"])
+	},
+}
+
 func init() {
 	oneServerCmd.Flags().BoolVarP(&WithResources, "resources", "", false, "With resources")
 	rootCmd.AddCommand(serversCmd)
 	serversCmd.AddCommand(listServersCmd)
 	serversCmd.AddCommand(oneServerCmd)
 
+	addServerCmd.Flags().IntP("port", "p", 22, "Port")
+	addServerCmd.Flags().StringP("user", "u", "root", "User")
+	addServerCmd.Flags().BoolP("validate", "", false, "Validate the server")
+	serversCmd.AddCommand(addServerCmd)
+	serversCmd.AddCommand(validateServerCmd)
+	serversCmd.AddCommand(removeServerCmd)
 }

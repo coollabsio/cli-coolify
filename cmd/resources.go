@@ -18,7 +18,7 @@ var listResourcesCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all resources",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckMinimumVersion("4.0.0-beta.237")
+		CheckDefaultThings("4.0.0-beta.237")
 		data, err := Fetch("resources")
 		if err != nil {
 			log.Println(err)

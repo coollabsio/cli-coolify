@@ -34,6 +34,8 @@ var SensitiveInformationOverlay = "********"
 var Debug bool
 var ShowSensitive bool
 var Force bool
+var Format string
+
 var JsonMode bool
 var PrettyMode bool
 var SetDefaultInstance bool
@@ -51,6 +53,29 @@ var rootCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
+}
+
+func CheckFormat(format string) {
+	if format == "json" {
+		JsonMode = true
+		return
+	}
+	if format == "pretty" {
+		PrettyMode = true
+		return
+	}
+	if format == "table" {
+		return
+	}
+	fmt.Println("Invalid format", format)
+	os.Exit(0)
+}
+
+func CheckDefaultThings(version string) {
+	CheckFormat(Format)
+	if version != "" {
+		CheckMinimumVersion(version)
+	}
 }
 
 func CheckMinimumVersion(version string) {
@@ -81,6 +106,7 @@ func FetchVersion() (string, error) {
 	Version = data
 	return data, nil
 }
+
 func Fetch(url string) (string, error) {
 	url = Fqdn + "/api/v1/" + url
 	if Debug {
@@ -104,6 +130,73 @@ func Fetch(url string) (string, error) {
 		return "", fmt.Errorf("%d - Failed to fetch data from %s. Error: %s", resp.StatusCode, url, string(body))
 	}
 
+	return string(body), nil
+}
+func Post(url string, input io.Reader) (string, error) {
+	url = Fqdn + "/api/v1/" + url
+	if Debug {
+		log.Println("Posting data to", url)
+	}
+	req, err := http.NewRequest("POST", url, input)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Authorization", "Bearer "+Token)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := Instance.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode >= 400 {
+		message := string(body)
+		if message == "" {
+			message = "Unknown error"
+		} else {
+			msg := map[string]string{}
+			json.Unmarshal(body, &msg)
+			message = msg["message"]
+		}
+		return "", fmt.Errorf("%s (rc: %d)", message, resp.StatusCode)
+	}
+
+	return string(body), nil
+}
+
+func Delete(url string) (string, error) {
+	url = Fqdn + "/api/v1/" + url
+	if Debug {
+		log.Println("Deleting data from", url)
+	}
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Authorization", "Bearer "+Token)
+	resp, err := Instance.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		message := string(body)
+		if message == "" {
+			message = "Unknown error"
+		} else {
+			msg := map[string]string{}
+			json.Unmarshal(body, &msg)
+			message = msg["message"]
+		}
+		return "", fmt.Errorf("%s (rc: %d)", message, resp.StatusCode)
+	}
 	return string(body), nil
 }
 
@@ -179,8 +272,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&Token, "token", "", "", "Token for authentication (https://app.coolify.io/security/api-tokens)")
 	rootCmd.PersistentFlags().StringVarP(&Fqdn, "host", "", "", "Coolify instance hostname")
 
-	rootCmd.PersistentFlags().BoolVarP(&JsonMode, "json", "", false, "Json mode")
-	rootCmd.PersistentFlags().BoolVarP(&PrettyMode, "pretty", "", false, "Pretty json mode")
+	rootCmd.PersistentFlags().StringVarP(&Format, "format", "", "table", "Format output (table|json|pretty)")
 	rootCmd.PersistentFlags().BoolVarP(&ShowSensitive, "show-sensitive", "s", false, "Show sensitive information")
 	rootCmd.PersistentFlags().BoolVarP(&Force, "force", "f", false, "Force")
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "Debug mode")

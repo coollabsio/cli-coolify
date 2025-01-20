@@ -23,7 +23,7 @@ var listDomainsCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all domains",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckMinimumVersion("4.0.0-beta.237")
+		CheckDefaultThings("4.0.0-beta.237")
 		data, err := Fetch("domains")
 		if err != nil {
 			log.Println(err)
