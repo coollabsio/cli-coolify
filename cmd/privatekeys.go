@@ -32,7 +32,7 @@ var listPrivateKeysCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all private keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 
 		baseUrl := "security/keys"
 		data, err := Fetch(baseUrl)
@@ -78,7 +78,7 @@ var onePrivateKeyCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Short: "Get private key details by uuid",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 		baseUrl := "security/keys/"
 
 		uuid := args[0]
@@ -128,7 +128,8 @@ var addPrivateKeyCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(2),
 	Short:   "Add a private key",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.383")
+		version := "4.0.0-beta.383"
+		CheckDefaultThings(&version)
 		baseUrl := "security/keys"
 		name := args[0]
 		privateKeyInput := args[1]
@@ -169,7 +170,8 @@ var removePrivateKeyCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Short: "Remove a private key",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.383")
+		version := "4.0.0-beta.383"
+		CheckDefaultThings(&version)
 		baseUrl := "security/keys/"
 		uuid := args[0]
 		_, err := Delete(baseUrl + uuid)

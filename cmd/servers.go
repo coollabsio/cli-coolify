@@ -45,7 +45,7 @@ var listServersCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all servers",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 
 		baseUrl := "servers"
 		data, err := Fetch(baseUrl)
@@ -91,7 +91,7 @@ var oneServerCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Short: "Get server details by uuid",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 		baseUrl := "servers/"
 
 		uuid := args[0]
@@ -156,7 +156,7 @@ var removeServerCmd = &cobra.Command{
 	Use:   "remove [uuid]",
 	Short: "Remove a server",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 		baseUrl := "servers/"
 		uuid := args[0]
 		response, err := Delete(baseUrl + uuid)
@@ -174,7 +174,7 @@ var addServerCmd = &cobra.Command{
 	Use:   "add [name] [ip] [private_key_uuid]",
 	Short: "Add a server",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 		baseUrl := "servers"
 		name := args[0]
 		ip := args[1]
@@ -213,7 +213,7 @@ var validateServerCmd = &cobra.Command{
 	Use:   "validate [uuid]",
 	Short: "Validate a server",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.235")
+		CheckDefaultThings(nil)
 		baseUrl := "servers/"
 		uuid := args[0]
 		var url = baseUrl + uuid + "/validate"

@@ -71,15 +71,17 @@ func CheckFormat(format string) {
 	os.Exit(0)
 }
 
-func CheckDefaultThings(version string) {
+func CheckDefaultThings(version *string) {
+	FetchVersion()
 	CheckFormat(Format)
-	if version != "" {
-		CheckMinimumVersion(version)
+	if version == nil {
+		CheckMinimumVersion(Version)
+	} else {
+		CheckMinimumVersion(*version)
 	}
 }
 
 func CheckMinimumVersion(version string) {
-	FetchVersion()
 	requiredVersion, err := compareVersion.NewVersion(version)
 	if err != nil {
 		log.Println(err)

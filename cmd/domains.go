@@ -23,7 +23,7 @@ var listDomainsCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all domains",
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.237")
+		CheckDefaultThings(nil)
 		data, err := Fetch("domains")
 		if err != nil {
 			log.Println(err)
@@ -62,7 +62,7 @@ var listDomainsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(domainsCmd)
-	domainsCmd.AddCommand(listDomainsCmd)
+	// rootCmd.AddCommand(domainsCmd)
+	// domainsCmd.AddCommand(listDomainsCmd)
 
 }

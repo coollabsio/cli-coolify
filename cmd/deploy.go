@@ -29,7 +29,7 @@ var deployByUuidCmd = &cobra.Command{
 	Short: "Deploy by uuid",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		CheckDefaultThings("4.0.0-beta.237")
+		CheckDefaultThings(nil)
 		var CsvUuids = ""
 		for _, uuid := range args {
 			CsvUuids += uuid + ","
